@@ -1,50 +1,53 @@
 $(document).ready(function () {
 
-    // Display Speak Message
-    eel.expose(DisplayMessage)
+    // Function to display a speak message
+    eel.expose(DisplayMessage);
     function DisplayMessage(message) {
         $(".wave-message li:first").text(message);
         $('.wave-message').textillate('start');
     }
 
-    // Show hood (GUI)
+    // Show the GUI hood
     eel.expose(ShowHood);
     function ShowHood() {
-        $("#Oval").attr("hidden", false);
+        $("#Oval").removeAttr("hidden");
     }
 
-    // Hide hood (GUI)
+    // Hide the GUI hood
     eel.expose(HideHood);
     function HideHood() {
-        $("#Oval").attr("hidden", true);  // Hide the hood, can be adjusted to suit your design
-        $(".wave-message").text("");      // Clear any messages
+        $("#Oval").attr("hidden", true);  // Hide the hood
+        $(".wave-message").empty();       // Clear the wave message
     }
 
-    // Set the assistant state
+    // Set the assistant's state (active or sleep)
     eel.expose(SetAssistantState);
     function SetAssistantState(state) {
         localStorage.setItem('assistant_state', state);
     }
 
-    // Get the assistant state
+    // Get the current state of the assistant
     eel.expose(GetAssistantState);
     function GetAssistantState() {
         return localStorage.getItem('assistant_state') || 'active';
     }
 
-    // Handle user commands based on assistant state
-    function handleCommand(command) {
-        if (GetAssistantState() === 'sleep') {
+    // Handle user commands based on the assistant's state
+    eel.expose(HandleCommand);
+    function HandleCommand(command) {
+        const assistantState = GetAssistantState();
+
+        if (assistantState === 'sleep') {
             if (command.toLowerCase() === 'wake up') {
                 SetAssistantState('active');
-                eel.DisplayMessage("Assistant is awake and ready to assist.");
+                DisplayMessage("Assistant is awake and ready to assist.");
+                ShowHood();
             } else {
-                eel.DisplayMessage("Assistant is in sleep mode. Say 'wake up' to reactivate.");
+                DisplayMessage("Assistant is in sleep mode. Say 'wake up' to reactivate.");
             }
         } else {
-            // Process commands normally
+            // Call TaskExecution from Python side via eel
             eel.TaskExecution(command);
         }
     }
-
 });
