@@ -1,23 +1,30 @@
 import os
+import winsound
 import pyttsx3
 import speech_recognition as sr
 import eel
-import pyautogui
-import time
 import requests
 import datetime
 import random
-
+import wolframalpha
+import datefinder
+from datetime import datetime, time
 from engine.config import ASSISTANT_NAME
 from engine.helper import close_program
+from playsound import playsound
 
-# Your OpenWeatherMap API key
+# Initialize WolframAlpha client
+try:
+    app = wolframalpha.Client("EEQ3YE-EP5UQKUAQQ")
+except Exception as e:
+    print("Error initializing WolframAlpha client:", e)
+
+# OpenWeatherMap API details
 API_KEY = '4ad432a816fb1ab0e83d962d52909803'
 BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
 
 # Flag to check if greeting has been given
 greeted = False
-
 
 def speak(text):
     """Function to speak text and display it."""
@@ -33,23 +40,61 @@ def speak(text):
     except Exception as e:
         print(f"Error in speak function: {e}")
 
+def wish():
+    """Function to greet the user based on the current time."""
+    current_time = datetime.now().strftime("%I:%M %p")  # Use datetime to get the current time
+    hour = datetime.now().hour
 
-def wish_me():
-    """Function to greet the user based on the time of day."""
-    hour = int(datetime.datetime.now().hour)
-    if hour >= 0 and hour < 12:
-        speak("Good morning! How may I help you?")
-    elif hour >= 12 and hour < 18:
-        speak("Good afternoon! How may I assist you?")
+    if 0 <= hour < 12:
+        speak(f"Good morning sir, it's {current_time}")
+    elif 12 <= hour < 18:
+        speak(f"Good afternoon sir, it's {current_time}")
     else:
-        speak("Good evening! How may I assist you?")
+        speak(f"Good evening sir, it's {current_time}")
 
+    speak("How may I help you?")
+
+
+from playsound import playsound
+
+def set_alarm():
+    """Function to set an alarm at a specified time."""
+    try:
+        speak("Please tell me the time to set the alarm in 'HH:MM AM/PM' format.")
+        alarm_time = takecommand()
+
+        # Extract the alarm time using datefinder
+        dTimeA = list(datefinder.find_dates(alarm_time))
+        
+        if not dTimeA:
+            speak("Could not understand the time. Please try again.")
+            return
+        
+        alarm_datetime = dTimeA[0]
+        hourA = alarm_datetime.hour
+        minA = alarm_datetime.minute
+
+        speak(f"Alarm set for {alarm_datetime.strftime('%I:%M %p')}.")
+
+        while True:
+            current_time = datetime.now()
+            if current_time.hour == hourA and current_time.minute == minA:
+                speak("The alarm is going on now!")
+                # Use the playsound function to play the alarm sound
+                music_dir = "www\\assets\\audio\\alarm.mp3"
+                playsound(music_dir)
+                break
+            elif current_time.hour > hourA or (current_time.hour == hourA and current_time.minute > minA):
+                break  # Break the loop once the alarm time has passed
+
+    except Exception as e:
+        speak("An error occurred while setting the alarm.")
+        print(f"Error in set_alarm: {e}")
 
 def get_weather(location):
     """Function to get weather data for a location."""
     if not location:
         return "Please provide a location for the weather report."
-
     location = location.strip().title()
 
     try:
@@ -71,7 +116,6 @@ def get_weather(location):
     except Exception as e:
         return f"An error occurred while fetching the weather: {e}"
 
-
 def get_current_location():
     """Function to get the current city based on IP address."""
     try:
@@ -84,20 +128,20 @@ def get_current_location():
         print(f"Error getting current location: {e}")
         return None
 
-
 def takecommand():
     """Function to listen for and return a voice command."""
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print('Listening...')
         eel.DisplayMessage('Listening...')
-        r.pause_threshold = 1
+        sr.pause_threshold = 3.0
         r.adjust_for_ambient_noise(source)
         try:
             audio = r.listen(source, timeout=10, phrase_time_limit=6)
         except sr.WaitTimeoutError:
             eel.DisplayMessage('No speech detected.')
             return ""
+    
     try:
         print('Recognizing...')
         eel.DisplayMessage('Recognizing...')
@@ -112,40 +156,48 @@ def takecommand():
         speak(f"Network error: {e}")
         return ""
 
-
 @eel.expose
-def TaskExecution():
+def TaskExecution(message=1):
     """Function to execute tasks based on voice commands."""
     global greeted
-    
+
+    # If no message is passed, take voice command
+    if message == 1:
+        query = takecommand()
+        print(query)
+    else:
+        query = message
+
     # Greet the user only once
     if not greeted:
-        wish_me()
+        wish()
         greeted = True
-    
+
     try:
-        query = takecommand()
         if not query:
             eel.DisplayMessage("No command detected.")
             return
 
+        query = query.lower()
+
         if "what's the weather" in query:
-            # Extract the city after "in" if present in the query
             city = query.replace("what's the weather", "").strip()
             if "in" in city:
                 city = city.split("in")[-1].strip()
             else:
-                city = get_current_location()  # Use the current location if no city is specified
+                city = get_current_location()
 
             weather_info = get_weather(city)
             speak(weather_info)
-            eel.DisplayMessage(weather_info)  # Weather
-
+            eel.DisplayMessage(weather_info)
 
         elif "where am i" in query or "what is my location" in query:
             location_info = get_current_location() or "Unable to determine your location."
             speak(location_info)
             eel.DisplayMessage(location_info)
+
+        elif "set the alarm" in query:
+            set_alarm()
 
         elif "open" in query:
             from engine.features import openCommand
@@ -170,7 +222,13 @@ def TaskExecution():
             os.system('shutdown -s')
 
         elif "what's up" in query or "how are you" in query:
-            stMsgs = ['Just doing my thing!', 'I am fine!', 'Nice!', 'I am nice and full of energy', 'I am okay! How are you?']
+            stMsgs = [
+                'Just doing my thing!', 
+                'I am fine!', 
+                'Nice!', 
+                'I am nice and full of energy!', 
+                'I am okay! How are you?'
+            ]
             ans_q = random.choice(stMsgs)
             speak(ans_q)
 
@@ -180,21 +238,30 @@ def TaskExecution():
             eel.DisplayMessage(ans_m)
 
         elif "who are you" in query:
-            about = "I am AVAS (Advanced Voice Assistant System), an AI-based assistant to help you like a close friend! I can perform tasks and provide information as needed."
+            about = "I am AVA (Advanced Voice Assistant), an AI-based assistant to help you like a close friend! I can perform tasks and provide information as needed."
             speak(about)
             eel.DisplayMessage(about)
 
-        elif "hello" in query or "hello AVAS" in query:
-            speak('Hello sir')
+        elif "hello" in query or "hello avas" in query:
+            speak("Hello sir!")
 
         elif "your name" in query:
             speak("Thanks for asking my name! I am AVAS.")
 
         else:
-            eel.DisplayMessage("Command not recognized.")
+            # WolframAlpha query handling
+            try:
+                res = app.query(query)
+                answer = next(res.results).text
+                speak(answer)
+                eel.DisplayMessage(answer)
+            except Exception as e:
+                print("Error:", e)
+                speak("Sorry, I couldn't find the answer to your query.")
 
     except Exception as e:
         print(f"Error in task execution: {e}")
         eel.DisplayMessage("An error occurred while processing the command.")
+    
     finally:
         eel.ShowHood()  # Return to idle state after each command

@@ -20,7 +20,7 @@ cursor = con.cursor()
 # Play assistant startup sound
 @eel.expose
 def playassistantsound():
-    music_dir = "www\\assets\\audio\\start_sound.mp3"
+    music_dir = "www\\assets\\audio\\startsound1.mp3" 
     playsound(music_dir)
 
 # Function to open commands (apps or websites)
