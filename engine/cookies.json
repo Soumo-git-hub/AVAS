@@ -1,0 +1,28 @@
+[
+    {
+        "domain": ".opera.com",
+        "expirationDate": 1749575246,
+        "hostOnly": false,
+        "httpOnly": false,
+        "name": "_hjSessionUser_2187257",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "eyJpZCI6ImU0Zjg0YjU2LWE2ZDAtNWI5NC05NWIzLTdhN2M1YmM3ZWVkNiIsImNyZWF0ZWQiOjE3MTgwMzkyNDY2NTUsImV4aXN0aW5nIjpmYWxzZX0="
+    },
+    {
+        "domain": "addons.opera.com",
+        "expirationDate": 1764182634.386877,
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "csrftoken",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "PMx1SVJOy7P3OeWhbHWHfs8x7OyY6rdc"
+    }
+]
