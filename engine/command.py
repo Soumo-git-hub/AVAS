@@ -36,6 +36,7 @@ def speak(text):
         engine.setProperty('rate', 140)
         eel.DisplayMessage(text)
         engine.say(text)
+        eel.receiverText(text)
         engine.runAndWait()
     except Exception as e:
         print(f"Error in speak function: {e}")
@@ -165,8 +166,10 @@ def TaskExecution(message=1):
     if message == 1:
         query = takecommand()
         print(query)
+        eel.senderText(query)
     else:
         query = message
+        eel.senderText(query)
 
     # Greet the user only once
     if not greeted:
