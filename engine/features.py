@@ -1,5 +1,4 @@
 import os
-import subprocess
 import time
 from playsound import playsound
 import eel
@@ -12,7 +11,7 @@ import struct
 import pyautogui
 from engine.command import speak
 from engine.config import ASSISTANT_NAME
-from engine.helper import extract_yt_term, remove_words
+from engine.helper import extract_yt_term
 
 # Database connection
 con = sqlite3.connect("avas.db")
@@ -109,14 +108,3 @@ def hotword():
             audio_stream.close()
         if paud:
             paud.terminate()
-
-# chat bot 
-def chatBot(query):
-    user_input = query.lower()
-    chatbot = hugchat.ChatBot(cookie_path="engine\cookies.json")
-    id = chatbot.new_conversation()
-    chatbot.change_conversation(id)
-    response =  chatbot.chat(user_input)
-    print(response)
-    speak(response)
-    return response

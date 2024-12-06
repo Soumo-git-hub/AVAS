@@ -32,10 +32,9 @@ def speak(text):
         print(f"Speaking: {text}")
         engine = pyttsx3.init('sapi5')
         voices = engine.getProperty('voices')
-        engine.setProperty('voice', voices[0].id)
+        engine.setProperty('voice', voices[1].id)
         engine.setProperty('rate', 140)
         eel.DisplayMessage(text)
-        eel.receiverText(text)
         engine.say(text)
         engine.runAndWait()
     except Exception as e:
@@ -166,10 +165,8 @@ def TaskExecution(message=1):
     if message == 1:
         query = takecommand()
         print(query)
-        eel.senderText(query)
     else:
         query = message
-        eel.senderText(query)
 
     # Greet the user only once
     if not greeted:
@@ -202,8 +199,7 @@ def TaskExecution(message=1):
         elif "set the alarm" in query:
             set_alarm()
 
-           
-
+        
         elif "open" in query:
             from engine.features import openCommand
             openCommand(query)
@@ -254,9 +250,6 @@ def TaskExecution(message=1):
             speak("Thanks for asking my name! I am AVAS.")
 
         else:
-
-            from engine.features import chatBot
-            chatBot(query)
             # WolframAlpha query handling
             try:
                 res = app.query(query)
